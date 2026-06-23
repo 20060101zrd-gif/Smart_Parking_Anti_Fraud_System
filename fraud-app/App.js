@@ -2,10 +2,8 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, SafeAreaView, Alert, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 
-// ⚠️ 【关键修改】将这里改成你电脑真实的 IPv4 地址，否则手机连不上服务器！
-// 例如: 'http://192.168.1.5:3000'
+// ⚠️ 【关键修改】保留你真实的 IPv4 地址
 const BACKEND_URL = 'http://192.168.16.46:3000';
-
 
 export default function App() {
   const [phoneInput, setPhoneInput] = useState('');
@@ -19,7 +17,6 @@ export default function App() {
 
     setIsLoading(true);
     try {
-      // 打包成 JSON 发送给后端
       const response = await fetch(`${BACKEND_URL}/api/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -59,6 +56,12 @@ export default function App() {
     ]);
   };
 
+  const handleReset = () => {
+    setActiveUser(null);
+    setPhoneInput('');
+    setNameInput('');
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
@@ -71,7 +74,7 @@ export default function App() {
           {!activeUser ? (
             <View style={styles.card}>
               <View style={styles.avatarCircle}><Feather name="user" size={32} color="#2563eb" /></View>
-              <Text style={styles.title}>新用户注册</Text>
+              <Text style={styles.title}>用户登录</Text>
               
               <TextInput style={styles.input} placeholder="11位手机号" keyboardType="numeric" maxLength={11} value={phoneInput} onChangeText={setPhoneInput} />
               <TextInput style={styles.input} placeholder="真实姓名" value={nameInput} onChangeText={setNameInput} />
@@ -90,14 +93,28 @@ export default function App() {
                 </View>
               </View>
 
-              <View style={[styles.couponBox, activeUser.hasCoupon ? styles.couponSuccess : styles.couponFail]}>
-                <Text style={[styles.couponTitle, {color: activeUser.hasCoupon ? '#15803d' : '#b91c1c'}]}>
-                  {activeUser.hasCoupon ? "🎟️ 新人免费停车券：已到账" : "❌ 发放拦截：命中历史注销库"}
+              {/* 🌟 核心逻辑更新：动态渲染三种券包状态 */}
+              <View style={[
+                styles.couponBox, 
+                !activeUser.hasCoupon ? styles.couponFail : (activeUser.alreadyReceived ? styles.couponWarning : styles.couponSuccess)
+              ]}>
+                <Text style={[
+                  styles.couponTitle, 
+                  {color: !activeUser.hasCoupon ? '#b91c1c' : (activeUser.alreadyReceived ? '#d97706' : '#15803d')}
+                ]}>
+                  {!activeUser.hasCoupon 
+                    ? "❌ 发放拦截：命中历史注销库" 
+                    : (activeUser.alreadyReceived ? "🎫 新人免费停车券：已领取" : "🎟️ 新人免费停车券：已到账")
+                  }
                 </Text>
               </View>
 
               <TouchableOpacity style={styles.btnDanger} onPress={handleCancelAccount} disabled={isLoading}>
                  {isLoading ? <ActivityIndicator color="#ef4444" /> : <Text style={styles.btnDangerText}>注销账号 (云端物理删除)</Text>}
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.btnReset} onPress={handleReset} disabled={isLoading}>
+                 <Text style={styles.btnResetText}>返回首页 / 切换账号</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -124,7 +141,11 @@ const styles = StyleSheet.create({
   couponBox: { padding: 20, borderRadius: 16, borderWidth: 1, marginBottom: 30 },
   couponSuccess: { backgroundColor: '#f0fdf4', borderColor: '#bbf7d0' },
   couponFail: { backgroundColor: '#fef2f2', borderColor: '#fecaca' },
+  // 🌟 新增：已领取的黄色警告样式
+  couponWarning: { backgroundColor: '#fffbeb', borderColor: '#fde68a' },
   couponTitle: { fontSize: 15, fontWeight: 'bold' },
   btnDanger: { alignItems: 'center', justifyContent: 'center', backgroundColor: 'white', borderWidth: 1, borderColor: '#fecaca', paddingVertical: 14, borderRadius: 12 },
-  btnDangerText: { color: '#ef4444', fontWeight: 'bold' }
+  btnDangerText: { color: '#ef4444', fontWeight: 'bold' },
+  btnReset: { alignItems: 'center', justifyContent: 'center', backgroundColor: '#f1f5f9', borderWidth: 1, borderColor: '#cbd5e1', paddingVertical: 14, borderRadius: 12, marginTop: 12 },
+  btnResetText: { color: '#475569', fontWeight: 'bold' }
 });
