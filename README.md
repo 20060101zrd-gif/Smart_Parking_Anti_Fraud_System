@@ -1,4 +1,5 @@
-# 智能停车防刷券风控系统 (Smart Parking Anti-Fraud System)
+# 智能停车防刷券风控系统 
+# Smart Parking Anti-Fraud System
 
 [![Language](https://img.shields.io/badge/Language-JavaScript-yellow?style=flat-square)](#)
 [![Frontend](https://img.shields.io/badge/Frontend-React_Native_%2F_Expo_54-61DAFB?style=flat-square)](#)
